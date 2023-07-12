@@ -15,10 +15,15 @@ export const Event = sequelize.define('event', {
     },
     owner: {
         type: DataTypes.STRING,
+        validate: { isEmail: true },
         allowNull: false
     },
     mode: {
         type: DataTypes.TINYINT,
+        validate: {
+            min: 1,
+            max: 3
+        },
         allowNull: false
     },
     datetimes: {
@@ -29,18 +34,22 @@ export const Event = sequelize.define('event', {
     status: {
         type: DataTypes.TINYINT,
         allowNull: false,
+        validate: { min: 0, max: 1 },
         defaultValue: 1
     },
     latitude: {
         type: DataTypes.FLOAT,
+        validate: { min: -90, max: 90 },
         defaultValue: null
     },
     longitude: {
         type: DataTypes.FLOAT,
+        validate: { min: -180, max: 180 },
         defaultValue: null
     },
     link: {
         type: DataTypes.STRING,
+        validate: { isUrl: true },
         defaultValue: null
     },
     bookings: {
