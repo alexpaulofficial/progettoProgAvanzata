@@ -1,0 +1,29 @@
+version: '3.1'
+services:
+  db:
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password123
+      POSTGRES_DB: progettoProgAvanzata
+    volumes:
+      - ./data/seed.sql:/docker-entrypoint-initdb.d/seed.sql 
+    ports:
+      - 5432:5432
+
+  app:
+    build: .
+    restart: always
+    ports:
+      - 3000:3000
+    depends_on:
+      - db
+    environment:
+      DATABASE_HOST: db
+      DATABASE_PORT: 5432
+      DATABASE_NAME: progettoProgAvanzata
+      DATABASE_USER: postgres
+      DATABASE_PASSWORD: password123
+    env_file:
+        - .env
