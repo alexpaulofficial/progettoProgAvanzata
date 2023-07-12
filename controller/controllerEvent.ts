@@ -8,11 +8,12 @@ eventTypeCost.set(2,2);
 eventTypeCost.set(3,4); 
 
 // creazione evento con riduzione token utente (se disponibili)
-export function createEvent(event: any, res: any): void{
-    checkBalanceCost(event.owner, eventTypeCost.get(event.mode), res).then(balance => {if (balance == true) {
-        decreaseToken(event.owner, eventTypeCost.get(event.mode), res);
-        Event.create(event).then((item) => {
-            res.status(201).json({message:"Event CREATED succesfully"});
+export async function createEvent(req: any, res: any) {
+    checkBalanceCost(req.email, eventTypeCost.get(req.event.mode), res).then(balance => {if (balance == true) {
+        req.event.owner = req.email;
+        Event.create(req.event).then((item) => {
+            decreaseToken(req.email, eventTypeCost.get(req.event.mode), res);
+            res.status(201).json({message:"Event CREATED successfully"});
         }).catch((error) => {
             res.status(500).json({error:error});
         });}
@@ -36,13 +37,14 @@ export function showEventsOwner(email: string, res: any): void{
 }
 
 // restituisce le prenotazioni di un evento
-export function getEventBookings(event_id: number, res: any): void {
+export async function getEventBookings(event_id: number, res: any) {
     let event: any;
     try{
-        event = Event.findAll({where: { id: event_id}, raw: true}).then((booking: any) => {
-            console.log(booking)
-            if(booking != "") res.status(200).json({bookings:event.bookings});
-                else res.status(404).json({message:"Event with no booking (or event not found)"});
+        event = Event.findByPk(event_id, {raw: true}).then((booking: any) => {
+            if(booking != null) {
+                res.status(200).json({bookings:booking.bookings});
+            }
+            else res.status(404).json({message:"Event with no booking (or event not found)"});
         });
     }catch(error){
         res.status(500).json({error:error});
@@ -51,7 +53,7 @@ export function getEventBookings(event_id: number, res: any): void {
 
 export async function closeEvent(event_id: number, res: any) {
     Event.update({status: 0}, {where: {id: event_id}}).then(() => {
-        res.status(200).json({message:"Event CLOSED succesfully"});
+        res.status(200).json({message:"Event CLOSED successfully"});
     }).catch((error) => {
         res.status(500).json({error:error});
     });
