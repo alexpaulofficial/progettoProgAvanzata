@@ -6,7 +6,7 @@ export async function checkBalanceCost(email: string, cost: number, res: any): P
     try{
         result = await User.findByPk(email, {raw: true});
     }catch(error){
-        res.status(500).json({error:"ERROR - "+error})
+        res.status(500).json({error:error})
     }
     if(result.token >= cost) {
         return true;
@@ -22,7 +22,7 @@ export async function decreaseToken(email: string, cost: number, res: any): Prom
         User.decrement(['token'], {by: cost, where: { email: email} });
         return true;
     }catch(error){
-        res.status(500).json({error:"ERROR - "+error})
+        res.status(500).json({error:error})
         return false;
     }
 }
@@ -32,6 +32,16 @@ export function userInfo(email: string, res: any): void {
     User.findAll({where: { email : email }, raw: true}).then((item: object) => {
         res.status(200).json({user:item});
     }).catch((error) => {
-        res.status(500).json({error:"ERROR - "+error});
+        res.status(500).json({error:error});
     });
 }
+
+export async function checkExistingUser(email: string): Promise<boolean> {
+    const user = await User.findOne({
+      attributes: ['email'],
+      where: { email: email },
+    });
+    if (user) return true;
+    else return false;
+  }
+  
