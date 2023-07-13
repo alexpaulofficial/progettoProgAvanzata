@@ -3,7 +3,7 @@ CREATE TABLE "user" (
   name VARCHAR NOT NULL,
   surname VARCHAR NOT NULL,
   role VARCHAR NOT NULL DEFAULT 'user',
-  token INTEGER NOT NULL,
+  token INTEGER NOT NULL check (token >= 0),
   PRIMARY KEY (email)
 );
 
@@ -13,7 +13,7 @@ CREATE TABLE "event" (
   owner VARCHAR NOT NULL REFERENCES "user" (email) ON DELETE CASCADE ON UPDATE CASCADE,
   mode INTEGER NOT NULL check (mode between 1 and 3),
   datetimes TIMESTAMP WITH TIME ZONE[] NOT NULL,
-  status INTEGER NOT NULL DEFAULT 1,
+  status INTEGER NOT NULL DEFAULT 1 check (status between 0 and 1),
   latitude FLOAT,
   longitude FLOAT,
   link VARCHAR,

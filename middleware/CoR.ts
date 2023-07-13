@@ -29,3 +29,10 @@ export const showBookings = [
     middleAuth.checkToken, 
     middleAuth.verifyAndAuthenticate
 ];
+
+export const increaseToken = [
+    middleAuth.checkHeader, 
+    middleAuth.checkToken, 
+    middleAuth.verifyAndAuthenticate,
+    middleAuth.checkAdminReq
+];

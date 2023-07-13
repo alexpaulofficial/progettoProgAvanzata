@@ -15,6 +15,33 @@ export async function checkBalanceCost(email: string, cost: number, res: any): P
 }
 
 // diminuisce il numero di token dato il costo dell'evento
+export async function incrementToken(user: string, amount : number, res: any): Promise<void> {
+    let result: any;
+    try{
+        result = await User.findByPk(user, {raw: true});
+        if(result !== null){
+            await incrementTokenInDB(user, amount).then(() => {
+            res.status(200).json({message:"Token increased successfully"});
+            }).catch((error) => {
+                res.status(500).json({error:error});
+            });
+        }else{
+            res.status(500).json({error:"User not found"})
+        }
+    }catch(error){
+        res.status(500).json({error:error})
+    }
+}
+
+export async function incrementTokenInDB(user: string, amount : number): Promise<void> {
+    try{
+        await User.increment(['token'], {by: amount, where: { email: user} });
+    }catch(error){
+        throw error;
+    }
+}
+
+// diminuisce il numero di token dato il costo dell'evento
 export async function decreaseToken(email: string, cost: number, res: any): Promise<boolean>{
     let result: any;
     try{
@@ -36,12 +63,11 @@ export function userInfo(email: string, res: any): void {
     });
 }
 
-export async function checkExistingUser(email: string): Promise<boolean> {
+export async function checkExistingUser(email: string): Promise<any> {
     const user = await User.findOne({
-      attributes: ['email'],
       where: { email: email },
     });
-    if (user) return true;
+    if (user) return user;
     else return false;
   }
   

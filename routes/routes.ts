@@ -28,4 +28,7 @@ router.post('/delete-event', Middleware.deleteEvent, async (req, res) => {
   eventController.deleteEvent(req.user.event_id, res);
 });
 
+router.post('/increment-token', Middleware.increaseToken, async (req, res) => {
+  userController.incrementToken(req.user.increment_user, req.user.increment_amount, res);
+});
 export default router;

@@ -61,6 +61,7 @@ export function verifyAndAuthenticate(req, res, next) {
 // verifico che l'utente sia veramente un admin come specificato nel token
 export async function checkAdminReq(req, res, next) {
     const user: any = await User.checkExistingUser(req.user.email);
+    console.log("User: " + user.email + " " + user.role);
         if (req.user.role === "admin" && user.role === "admin") {
             next();
         }

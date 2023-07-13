@@ -23,6 +23,7 @@ export const User = sequelize.define('user', {
   },
   token: {
       type: DataTypes.INTEGER,
+      validate: { min: 0 },
       allowNull: false
   }
 }, 
