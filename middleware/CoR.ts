@@ -15,3 +15,11 @@ export const close_event = [
     middleAuth.checkUserReq,
     middleEvent.checkEvent
 ];
+
+export const delete_event = [
+    middleAuth.checkHeader, 
+    middleAuth.checkToken, 
+    middleAuth.verifyAndAuthenticate,
+    middleAuth.checkUserReq,
+    middleEvent.checkEvent
+];

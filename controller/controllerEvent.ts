@@ -76,3 +76,25 @@ export async function checkEvent(id: number, owner: string, res: any): Promise<b
         return false;
     }
 }
+
+export async function deleteEvent(event_id: number, res: any) {
+    Event.findByPk(event_id, {raw: true}).then((event: any) => {
+        if(event != null) {
+            if(event.bookings == null) {
+                Event.destroy({where: {id: event_id}}).then(() => {
+                    res.status(200).json({message:"Event DELETED successfully"});
+                }).catch((error) => {
+                    res.status(500).json({error:error});
+                });
+            }
+            else {
+                res.status(403).json({error:"Event with bookings"});
+            }
+        }
+            else {
+                res.status(404).json({error:"Event not found"});
+            }
+    }).catch((error) => {   
+        res.status(500).json({error:error});
+    });
+}

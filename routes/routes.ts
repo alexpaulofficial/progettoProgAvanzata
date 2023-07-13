@@ -24,4 +24,8 @@ router.post('/close-event', Middleware.close_event, async (req, res) => {
   eventController.closeEvent(req.user.event_id, res);
 });
 
+router.post('/delete-event', Middleware.delete_event, async (req, res) => {
+  eventController.deleteEvent(req.user.event_id, res);
+});
+
 export default router;
