@@ -1,14 +1,14 @@
 import * as middleAuth from './middlewareAuth';
 import * as middleEvent from './middlewareEvent';
 
-export const create_event = [
+export const createEvent = [
     middleAuth.checkHeader, 
     middleAuth.checkToken, 
     middleAuth.verifyAndAuthenticate,
     middleAuth.checkUserReq
 ];
 
-export const close_event = [
+export const closeEvent = [
     middleAuth.checkHeader, 
     middleAuth.checkToken, 
     middleAuth.verifyAndAuthenticate,
@@ -16,10 +16,16 @@ export const close_event = [
     middleEvent.checkEvent
 ];
 
-export const delete_event = [
+export const deleteEvent = [
     middleAuth.checkHeader, 
     middleAuth.checkToken, 
     middleAuth.verifyAndAuthenticate,
     middleAuth.checkUserReq,
     middleEvent.checkEvent
+];
+
+export const showBookings = [
+    middleAuth.checkHeader, 
+    middleAuth.checkToken, 
+    middleAuth.verifyAndAuthenticate
 ];
