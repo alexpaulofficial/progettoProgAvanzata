@@ -15,4 +15,9 @@ const HOST = '0.0.0.0';
 app.get('/', (req: Request, res: Response) => {
   res.send('Per accedere all\'API utilizzare il percorso /api');
 });
+
+app.use(function (req, res) {
+  res.status(401).json({ error: "BAD REQUEST" });
+})
+
 app.listen(PORT, HOST);

@@ -26,7 +26,7 @@ export async function incrementToken(user: string, amount : number, res: any): P
                 res.status(500).json({error:error});
             });
         }else{
-            res.status(500).json({error:"User not found"})
+            res.status(500).json({error:"User to increment not found"})
         }
     }catch(error){
         res.status(500).json({error:error})

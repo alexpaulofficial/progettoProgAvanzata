@@ -9,13 +9,13 @@ eventTypeCost.set(3,4);
 
 // creazione evento con riduzione token utente (se disponibili)
 export async function createEvent(req: any, res: any) {
-    checkBalanceCost(req.email, eventTypeCost.get(req.event.mode), res).then(balance => {if (balance == true) {
-        req.event.owner = req.email;
-        Event.create(req.event).then((item) => {
-            decreaseToken(req.email, eventTypeCost.get(req.event.mode), res);
+    checkBalanceCost(req.user.email, eventTypeCost.get(req.body.mode), res).then(balance => {if (balance == true) {
+        req.body.owner = req.user.email;
+        Event.create(req.body).then((item) => {
+            decreaseToken(req.user.email, eventTypeCost.get(req.body.mode), res);
             res.status(201).json({message:"Event CREATED successfully"});
         }).catch((error) => {
-            res.status(500).json({error:error});
+            res.status(404).json({"Not found": error});
         });}
         else {
             res.status(401).json({error:"Balance too low"});
