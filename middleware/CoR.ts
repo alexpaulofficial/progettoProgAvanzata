@@ -6,7 +6,8 @@ export const createEvent = [
     middleAuth.checkHeader, 
     middleAuth.checkToken, 
     middleAuth.verifyAndAuthenticate,
-    middleAuth.checkUserReq
+    middleAuth.checkUserReq,
+    middleEvent.checkCreateEventBody
 ];
 
 export const closeEvent = [
@@ -14,6 +15,7 @@ export const closeEvent = [
     middleAuth.checkToken, 
     middleAuth.verifyAndAuthenticate,
     middleAuth.checkUserReq,
+    middleEvent.checkEventIdBody,
     middleEvent.checkEvent
 ];
 
@@ -22,13 +24,15 @@ export const deleteEvent = [
     middleAuth.checkToken, 
     middleAuth.verifyAndAuthenticate,
     middleAuth.checkUserReq,
+    middleEvent.checkEventIdBody,
     middleEvent.checkEvent
 ];
 
 export const showBookings = [
     middleAuth.checkHeader, 
     middleAuth.checkToken, 
-    middleAuth.verifyAndAuthenticate
+    middleAuth.verifyAndAuthenticate,
+    middleEvent.checkEventIdBody
 ];
 
 export const checkAdmin = [
@@ -44,6 +48,19 @@ export const checkEventsOwner = [
     middleAuth.checkToken, 
     middleAuth.verifyAndAuthenticate,
     middleAuth.checkUserReq,
+    middleEvent.checkEventsOwnerBody,
     middleAuth.checkOwnerReq
 ];
 
+export const checkInfoUser = [
+    middleAuth.checkHeader, 
+    middleAuth.checkToken, 
+    middleAuth.verifyAndAuthenticate,
+    middleAuth.checkUserReq,
+    middleAuth.checkAdminReq,
+    middleEvent.checkUserInfoBody
+];
+
+export const checkIncrementToken = [
+    middleEvent.checkIncrementTokenBody
+];

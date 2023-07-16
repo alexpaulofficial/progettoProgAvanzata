@@ -18,7 +18,7 @@ router.get('/show-bookings', Middleware.showBookings, async (req: any, res: any)
 });
 
 // rotta non richiesta, ma utile per testare alcune funzionalità
-router.get('/show-info-user', Middleware.checkAdmin, function (req: any, res: any) {
+router.get('/show-info-user', Middleware.checkInfoUser, function (req: any, res: any) {
   userController.userInfo(req.body.user, res);
 });
 
@@ -30,7 +30,7 @@ router.delete('/delete-event', Middleware.deleteEvent, async (req, res) => {
   eventController.deleteEvent(req.body.event_id, res);
 });
 
-router.post('/increment-token', Middleware.checkAdmin, async (req, res) => {
+router.post('/increment-token', Middleware.checkIncrementToken, Middleware.checkAdmin, async (req, res) => {
   userController.incrementToken(req.body.increment_user, req.body.increment_amount, res);
 });
 export default router;

@@ -20,4 +20,12 @@ app.use(function (req, res) {
   res.status(401).json({ error: "BAD REQUEST" });
 })
 
+app.use((err, req, res, next) => {
+  if (err.status === 400 && 'body' in err) {
+      console.error(err);
+      return res.status(404).send({error: err.message }); // Bad request
+    }
+    next();
+});
+
 app.listen(PORT, HOST);
