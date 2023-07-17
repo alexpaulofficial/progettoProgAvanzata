@@ -84,6 +84,51 @@ sequenceDiagram
 
 ```
 
+### Diagramma prenotazione evento
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant middleEvent as "Middleware Event"
+    participant controller as "Controller"
+    participant Database as "Database"
+
+    Client ->> middleEvent : Richiesta
+    middleEvent ->> middleEvent.checkBookEventBody : Esecuzione
+    middleEvent.checkBookEventBody -->> middleEvent : Risposta
+
+    middleEvent ->> middleEvent.checkEventExistence : Esecuzione
+    middleEvent.checkEventExistence -->> middleEvent : Risposta
+
+    middleEvent ->> middleEvent.checkEventStatus : Esecuzione
+    middleEvent.checkEventStatus -->> middleEvent : Risposta
+
+    middleEvent ->> middleEvent.checkDatetimesExistence : Esecuzione
+    middleEvent.checkDatetimesExistence -->> middleEvent : Risposta
+
+    middleEvent ->> middleEvent.checkBookingExistence : Esecuzione
+    middleEvent.checkBookingExistence -->> middleEvent : Risposta
+
+    middleEvent ->> middleEvent.getEventMode : Esecuzione
+    middleEvent.getEventMode -->> middleEvent : Risposta
+
+    middleEvent ->> middleEvent.checkBookingSecondMode : Esecuzione
+    middleEvent.checkBookingSecondMode -->> middleEvent : Risposta
+
+    middleEvent ->> middleEvent.checkBookingThirdMode : Esecuzione
+    middleEvent.checkBookingThirdMode -->> middleEvent : Risposta
+
+    alt Tutti i Middleware superati con Successo
+        middleEvent ->> controller : Richiesta con Middleware Superati
+        controller ->> Database : Aggiunta Prenotazioni (Update)
+        Database -->> controller : Risposta Aggiunta Prenotazioni
+        controller -->> Client : Risposta con Successo
+    else Almeno un Middleware ha Fallito
+        middleEvent -->> Client : Risposta con Errore
+    end
+
+```
+
 DATI NEL DB
 
 All'avvi dell'app il database viene populato tramite il file seed html
@@ -256,11 +301,21 @@ ATTENZIONE! Se il body di ogni richiesta non è ben strutturato (come nei dettag
 
 ### M(V)C
 
+
+
 ### Singleton
 
 
 
 ### Middleware
+
+Il pattern middleware è un design pattern comportamentale utilizzato per gestire richieste e risposte in modo flessibile e modulare. Nel contesto delle applicazioni web, i middleware agiscono come intercettatori tra le richieste dei client e le risposte del server. Ogni middleware esegue una specifica operazione o logica e può decidere di passare la richiesta al successivo middleware nella catena o interrompere la catena e restituire una risposta al client. Questo pattern permette di dividere il flusso delle operazioni in piccoli passaggi indipendenti, facilitando la gestione e la manutenzione del codice.
+
+**Utilizzo della catena di middleware nel progetto:**
+
+Nel progetto specifico che stiamo considerando, la catena di middleware viene utilizzata per effettuare controlli sulla richiesta prima di procedere con l'esecuzione del controller che gestirà l'operazione richiesta dal client.  Se uno dei middleware fallisce nel processo di verifica, la catena interrompe il flusso e restituisce una risposta di errore al client. Se tutti i middleware superano i controlli, la richiesta viene inoltrata al controller che effettua la richiesta al database. 
+
+Questo approccio modulare consente di separare le diverse fasi di controllo della richiesta e favorisce la riutilizzabilità del codice, facilitando inoltre la manutenzione e l'aggiunta di nuovi controlli nel flusso senza dover modificare il core dell'applicazione. Inoltre, rende il codice più leggibile e facile da comprendere, poiché ogni middleware si concentra solo su una specifica operazione logica.
 
 ### Chain of Responsability
 
@@ -275,7 +330,7 @@ Nel dettaglio, la CoR è implementata nella cartella [middleware](middleware).
 
 ### Router
 
-@
+
 
 
 
