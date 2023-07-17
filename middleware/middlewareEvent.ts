@@ -37,23 +37,13 @@ export async function middleEventBookings(event_id: number, res: any) {
     }
 }
 
-export async function checkEventsOwnerBody(req: any, res: any, next: any) {
-    const body = req.body;
-    if (checkString(body.owner)){
-        next();
-    }
-    else {
-        res.status(400).json({error:"Malformed body"});
-    }
-}
-
 export async function checkUserInfoBody(req: any, res: any, next: any) {
     const body = req.body;
     if (checkString(body.user)){
         next();
     }
     else {
-        res.status(400).json({error:"Malformed body"});
+        res.status(422).json({error:"Malformed body"});
     }
 }
   
@@ -63,7 +53,7 @@ export async function checkEventIdBody(req: any, res: any, next: any) {
         next();
     }
     else {
-        res.status(400).json({error:"Malformed body"});
+        res.status(422).json({error:"Malformed body"});
     }
 }
 
@@ -74,7 +64,7 @@ export async function checkCreateEventBody(req: any, res: any, next: any) {
         next();
     }
     else {
-        res.status(400).json({error:"Malformed body"});
+        res.status(422).json({error:"Malformed body"});
     }
 }
 
@@ -85,7 +75,7 @@ export async function checkBookEventBody(req: any, res: any, next: any) {
         next();
     }
     else {
-        res.status(400).json({error:"Malformed body"});
+        res.status(422).json({error:"Malformed body"});
     }
 }
 
@@ -95,7 +85,7 @@ export async function checkIncrementTokenBody(req: any, res: any, next: any) {
         next();
     }
     else {
-        res.status(400).json({error:"Malformed body"});
+        res.status(422).json({error:"Malformed body"});
     }
 }
 
@@ -206,7 +196,7 @@ export async function checkBookingSecondMode(req: any, res: any, next: any) {
 
 export async function checkBookingThirdMode(req: any, res: any, next: any) {
     if(req.body.mode == 3) {
-        if (req.body.datetimes.length != 1) res.status(400).json({error:"Malformed body - only one booking allowed"});
+        if (req.body.datetimes.length != 1) res.status(422).json({error:"Malformed body - only one booking allowed"});
         else {
             Event.getEventBookings(req.body.event_id, res).then((result: any) => {
                 result = result.filter((elem: any) => elem.user === req.user.email);

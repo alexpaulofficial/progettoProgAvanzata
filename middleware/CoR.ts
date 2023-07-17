@@ -47,9 +47,7 @@ export const checkEventsOwner = [
     middleAuth.checkHeader, 
     middleAuth.checkToken, 
     middleAuth.verifyAndAuthenticate,
-    middleAuth.checkUserReq,
-    middleEvent.checkEventsOwnerBody,
-    middleAuth.checkOwnerReq
+    middleAuth.checkUserReq
 ];
 
 export const checkInfoUser = [

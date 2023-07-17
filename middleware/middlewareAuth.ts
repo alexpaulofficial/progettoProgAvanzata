@@ -44,19 +44,11 @@ export function verifyAndAuthenticate(req, res, next) {
     if (user) {
         next();
     } else {
-      res.status(404).json({ error: "User request not found" });
+      res.status(401).json({ error: "User request not found" });
     }
   }
 
-  export async function checkOwnerReq(req, res, next) {
-    if (req.body.owner === req.user.email) {
-        next();
-    } else {
-      res.status(404).json({ error: "Only the user can access to his info" });
-    }
-  }
-
-  
+ 
 // verifico che l'utente sia veramente un admin come specificato nel token
 export async function checkAdminReq(req, res, next) {
     const user: any = await User.checkExistingUser(req.user.email);

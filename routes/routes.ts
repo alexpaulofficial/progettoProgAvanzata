@@ -10,8 +10,8 @@ router.post('/create-event', Middleware.createEvent, async (req: any, res: any) 
   eventController.createEvent(req, res);
 });
 
-router.get('/show-events-owner', Middleware.checkEventsOwner, function (req: any, res: any) {
-  eventController.showEventsOwner(req.body.owner, res);
+router.get('/show-events', Middleware.checkEventsOwner, function (req: any, res: any) {
+  eventController.showEventsOwner(req.user.email, res);
 });
 
 router.get('/show-bookings', Middleware.showBookings, async (req: any, res: any) => {
