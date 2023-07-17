@@ -1,10 +1,12 @@
-# Progetto Programmazion Avanzata
+# Progetto Programmazione Avanzata
 
 Il progetto consiste nel realizzare un sistema che consenta di effettuare le prenotazioni di slot temporali similmente al servizio Doodle ( https://doodle.com/it/ ).
 
 ## Tabella dei contenuti
 
-- ## Obiettivi
+
+
+## Obiettivi
 
 Lo scopo è realizzare un back-end che consenta di effettuare le prenotazioni di slot temporali similmente al servizio Doodle ( https://doodle.com/it/ ). In particolare,
 il back-end deve prevedere che un utente possa effettuare chiamate (payload in JSON) per:
@@ -23,17 +25,70 @@ il back-end deve prevedere che un utente possa effettuare chiamate (payload in J
 
 Ogni utente autenticato ha un numero di token (valore iniziale impostato nel seed del database). Ad ogni creazione avvenuta con successo di un evento si deve decrementare i token associati all’utente considerando i seguenti costi:
 
-·        1 token per Modalità 1
+- 1 token per Modalità 1
 
-·        2 token per Modalità 2
+- 2 token per Modalità 2
 
-·        4 token per Modalità 3
+- 4 token per Modalità 3
 
 Nel caso di token terminati ogni richiesta da parte dello stesso utente deve restituire **401 Unauthorized**.
 
 Prevedere una rotta per l’utente con ruolo admin che consenta di effettuare la ricarica per un utente fornendo la mail ed il nuovo “credito” .
 
-# Rotte dell'applicazione
+
+
+## Diagrammi UML
+
+### Diagramma delle sequenze middleAuthorization
+
+E' la catena di middleware che si occupa di verificare che l'utente sia autenticato e quindi autorizzato. Viene chiamato in ogni operazione, nei prossimi diagrammi verrà indicato come middelAuthorization sottointendo tutti i passaggi qui illustrati. 
+
+```mermaid
+sequenceDiagram
+    participant Utente
+    participant middle as Middleware Authorization
+    participant controllerUser as User Controller
+    participant dbFindOne as Postgres DB
+
+    Utente ->> middle : Richiesta
+    middle ->> middle.checkHeader : Esecuzione
+    middle.checkHeader -->> middle : Risposta
+
+    alt Header Valido
+        middle ->> middle.checkToken : Esecuzione
+        middle.checkToken -->> middle : Risposta
+
+        alt Token Valido
+            middle ->> middle.verifyAndAuthenticate : Esecuzione
+            middle.verifyAndAuthenticate -->> middle : Risposta
+
+            alt Utente Autorizzato
+                middle ->> middle.checkUserReq : Esecuzione
+                middle.checkUserReq -->> middle : Risposta
+
+                middle -->> controllerUser : Richiesta
+                controllerUser ->> dbFindOne : Ricerca Utente DB
+                dbFindOne -->> controllerUser : Utente Trovato
+                controllerUser -->> middle : Successo
+                middle -->> Utente : Successo
+            else Utente Non Autorizzato
+                middle -->> Utente : Errore di Autorizzazione 401
+            end
+        else Token Non Valido
+            middle -->> Utente : Errore di Autorizzazione 401
+        end
+    else Header Non Valido
+        middle -->> Utente : Errore di Autorizzazione 401
+    end
+
+
+```
+
+DATI NEL DB
+
+All'avvi dell'app il database viene populato tramite il file seed html
+
+## Rotte dell'applicazione
 
 Tutte le rotte partono dall'indirizzo http://localhost:3000/api. La seguente tabella riporta tutte le rotte disponibili:
 
@@ -50,7 +105,7 @@ Tutte le rotte partono dall'indirizzo http://localhost:3000/api. La seguente tab
 
 Le rotte che richiedono autenticazione JWT ricevono un token Bearer generato dalla chiave privata inserita nel file .env (di default *progettoProgAgvanzata*). Nelle descrizioni dettagliate delle rotte sono riportati il body in JSON., tralascianod il campo "email" e il campo "role" che fanno riferimento all'utente che effettua la richiesta.
 
-###### Token JWT
+#### Token JWT
 
 ```json
 {
@@ -59,7 +114,7 @@ Le rotte che richiedono autenticazione JWT ricevono un token Bearer generato dal
 }
 ```
 
-## Dettagli
+### Dettagli rotte
 
 ATTENZIONE! Se il body di ogni richiesta non è ben strutturato (come nei dettagli sotto) viene restituito un errore 422 "Malformed body".
 
@@ -154,6 +209,75 @@ ATTENZIONE! Se il body di ogni richiesta non è ben strutturato (come nei dettag
 >     "datetimes": ["2023-09-15T10:00:00.000Z"]
 > }
 > ```
+
+
+
+## Installazione ed avvio
+
+### Prerequisiti:
+
+- Docker e Docker Compose
+- Git (per clonare la repository, altrimenti si può scaricare direttamente da GitHub)
+
+### Procedura di avvio:
+
+1. Clonare la repository:
+   
+   ```bash
+   git clone https://github.com/alexpaulofficial/progettoProgAvanzata.git
+   ```
+
+2. Creare un file .env nella root del progetto con i seguenti campi (modificare a piacimento, soprattutto il campo SECRET_KEY)
+   
+   ```bash
+   SECRET_KEY='' # chiave per generare JWT (progettoProgAvanzata)
+   # variabili per database Postgres
+   POSTGRES_HOST='db'
+   POSTGRES_DB='progettoProgAvanzata'
+   POSTGRES_USER='postgres'
+   POSTGRES_PASSWORD='password123'
+   ```
+
+3. Avviare con Docker Compose:
+   
+   ```bash
+   $ docker compose up
+   ```
+
+4. Il servizio è attivo nella porta 3000
+
+## Test
+
+É possibile eseguire una serie di test predefiniti importando la collection Postman situata nella root della repository. I test comprendono vari casi di errore, dall'assenza di token all'impossibilità di prenotare uno slot già prenotato.
+
+
+
+## Design Pattern utilizzati
+
+### M(V)C
+
+### Singleton
+
+
+
+### Middleware
+
+### Chain of Responsability
+
+La Chain of Responsability (CoR) fa parte dei Behavioural Design Pattern e permette di processare una richiesta attraverso l'esecuzione di funzioni collegate tra loro in un determinato ordine. In Express, la CoR è realizzata tramite le funzionalità dei middleware i quali rappresentano i veri e propri anelli della catena.  
+
+Tale pattern è stato utilizzato per filtrare le richieste HTTP in modo da far pervenire al Controller solamente quelle corrette; per ogni rotta è stata definita una catena di middleware composta da:
+
+- middleware per il controllo dell'header e del token JWT (ove necessario);
+- middleware specifici della rotta (controllo sui tipi, sull'integrità dei dati, sui vincoli del database...) che restituisco errore dove necessario;
+
+Nel dettaglio, la CoR è implementata nella cartella [middleware](middleware).
+
+### Router
+
+@
+
+
 
 ## 📦Tool di sviluppo
 

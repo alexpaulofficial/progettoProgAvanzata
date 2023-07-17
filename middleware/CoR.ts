@@ -1,60 +1,37 @@
 import * as middleAuth from './middlewareAuth';
 import * as middleEvent from './middlewareEvent';
 
+export const middleAuthorization = [
+    middleAuth.checkHeader,
+    middleAuth.checkToken,
+    middleAuth.verifyAndAuthenticate,
+    middleAuth.checkUserReq
+];
+
 // verificare il token nel middleware
 export const createEvent = [
-    middleAuth.checkHeader, 
-    middleAuth.checkToken, 
-    middleAuth.verifyAndAuthenticate,
-    middleAuth.checkUserReq,
     middleEvent.checkCreateEventBody
 ];
 
 export const closeEvent = [
-    middleAuth.checkHeader, 
-    middleAuth.checkToken, 
-    middleAuth.verifyAndAuthenticate,
-    middleAuth.checkUserReq,
     middleEvent.checkEventIdBody,
     middleEvent.checkEventIsOwner
 ];
 
 export const deleteEvent = [
-    middleAuth.checkHeader, 
-    middleAuth.checkToken, 
-    middleAuth.verifyAndAuthenticate,
-    middleAuth.checkUserReq,
     middleEvent.checkEventIdBody,
     middleEvent.checkEventIsOwner
 ];
 
 export const showBookings = [
-    middleAuth.checkHeader, 
-    middleAuth.checkToken, 
-    middleAuth.verifyAndAuthenticate,
     middleEvent.checkEventIdBody
 ];
 
 export const checkAdmin = [
-    middleAuth.checkHeader, 
-    middleAuth.checkToken, 
-    middleAuth.verifyAndAuthenticate,
-    middleAuth.checkUserReq,
     middleAuth.checkAdminReq
 ];
 
-export const checkEventsOwner = [
-    middleAuth.checkHeader, 
-    middleAuth.checkToken, 
-    middleAuth.verifyAndAuthenticate,
-    middleAuth.checkUserReq
-];
-
 export const checkInfoUser = [
-    middleAuth.checkHeader, 
-    middleAuth.checkToken, 
-    middleAuth.verifyAndAuthenticate,
-    middleAuth.checkUserReq,
     middleAuth.checkAdminReq,
     middleEvent.checkUserInfoBody
 ];
@@ -64,10 +41,6 @@ export const checkIncrementToken = [
 ];
 
 export const bookEvent = [
-    middleAuth.checkHeader, 
-    middleAuth.checkToken, 
-    middleAuth.verifyAndAuthenticate,
-    middleAuth.checkUserReq,
     middleEvent.checkBookEventBody,
     middleEvent.checkEventExistence,
     middleEvent.checkEventStatus,
