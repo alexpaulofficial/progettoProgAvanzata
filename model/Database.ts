@@ -8,9 +8,9 @@ export class SequelizeSingleton {
 	private connection: Sequelize;
 
     private constructor() {
-		this.connection = new Sequelize(process.env.DATABASE_NAME, process.env.DATABASE_USER, process.env.DATABASE_PASSWORD, {
-            host: process.env.DATABASE_HOST,
-            port: Number(process.env.DATABASE_PORT),
+		this.connection = new Sequelize(process.env.POSTGRES_DB, process.env.POSTGRES_USER, process.env.POSTGRES_PASSWORD, {
+            host: process.env.POSTGRES_HOST,
+            port: Number(process.env.POSTGRES_PORT),
             dialect: 'postgres'
         });
 	}

@@ -37,17 +37,16 @@ export function showEventsOwner(email: string, res: any): void{
 }
 
 // restituisce le prenotazioni di un evento
-export async function getEventBookings(event_id: number, res: any) {
+export async function getEventBookings(event_id: number, res: any): Promise<object[] | null> {
     let event: any;
-    try{
-        event = Event.findByPk(event_id, {raw: true}).then((booking: any) => {
-            if(booking != null) {
-                res.status(200).json({bookings:booking.bookings});
-            }
-            else res.status(404).json({message:"Event with no booking (or event not found)"});
-        });
-    }catch(error){
-        res.status(500).json({error:error});
+    try {
+        event = await Event.findByPk(event_id, {raw: true});
+        if(event != null) {
+            return event.bookings;
+        }
+        else return null;
+    } catch(error) {
+        return null;
     }
 }
 
@@ -59,7 +58,7 @@ export async function closeEvent(event_id: number, res: any) {
     });
 }
 
-export async function checkEvent(id: number, owner: string, res: any): Promise<boolean> {
+export async function checkEventIsOwner(id: number, owner: string, res: any): Promise<boolean> {
     let result: any;
     try{
         result= await Event.findByPk(id, {raw: true});
@@ -75,6 +74,16 @@ export async function checkEvent(id: number, owner: string, res: any): Promise<b
         res.status(404).json({error:"Event not found"});
         return false;
     }
+}
+
+export async function checkEventExistence(event_id: number, res: any): Promise<boolean> {
+    let result: any;
+    try{
+        result = await Event.findByPk(event_id, {raw: true});
+    }catch(error){
+        res.status(404).json({error:error});
+    }
+    return result;
 }
 
 export async function deleteEvent(event_id: number, res: any) {
@@ -97,4 +106,75 @@ export async function deleteEvent(event_id: number, res: any) {
     }).catch((error) => {   
         res.status(500).json({error:error});
     });
+}
+
+
+export async function getEventStatus(event_id: number, res: any): Promise<number> {
+    let result: any;
+    try{
+        result = await Event.findByPk(event_id, {raw: true});
+    }catch(error){
+        res.status(404).json({error:error});
+    }
+    return result.status;
+}
+
+
+export async function getEventDatetimes(event_id: number, res: any): Promise<any> {
+    let result: any;
+    try{
+        result = await Event.findByPk(event_id, {raw: true});
+    }catch(error){
+        res.status(404).json({error:error});
+    }
+    return result.datetimes;
+}
+
+
+export async function getEventMode(event_id: number, res: any): Promise<number> {
+    let result: any;
+    try{
+        result = await Event.findByPk(event_id, {raw: true});
+    }catch(error){
+        res.status(404).json({error:error});
+    }
+    return result.mode;
+}
+
+export function bookEvent(event_id: number, email: string, datetimes: object, res: any) : void {
+    getEventBookings(event_id, res).then((bookings: any) => {
+        bookings.push({user: email, datetimes: datetimes});
+    Event.update({bookings: bookings}, {where: {id: event_id}}).then(() => {
+        res.status(200).json({message:"Event booked successfully"});
+    });
+}).catch((error) => {
+    res.status(500).json({error:error});
+});
+}
+
+export async function getBookingsSlots(event_id: number, res: any): Promise<object | null> {
+    let bookings: any;
+    try {
+        console.log("getEventBookings start");
+        bookings = await getEventBookings(event_id, {raw: true});
+        console.log("getEventBookings end");
+        let onlyDates = bookings.map(o => {
+            let obj = Object.assign({}, o);
+            delete obj.user;
+            return obj;});
+        console.log("onlyDates: " + JSON.stringify(onlyDates));
+        // trasforma il json in un array di date
+        let dates: Date[] = [];
+        onlyDates.forEach((element: Date) => {
+            Object.keys(element).forEach((key: any) => {
+                console.log("key: " + key);
+                dates.push(new Date(element[key]));
+            });
+        });
+        console.log("dates: " + dates);
+        return dates;
+    } catch(error) {
+        console.log("getEventBookings error: " + error);
+        return null;
+    }
 }

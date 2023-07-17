@@ -2,6 +2,7 @@ import { Router } from 'express';
 import * as eventController from '../controller/controllerEvent';
 import * as userController from '../controller/controllerUser';
 import * as Middleware from '../middleware/CoR';
+import * as MiddlewareEvent from '../middleware/middlewareEvent';
 
 const router = Router();
 
@@ -14,7 +15,7 @@ router.get('/show-events-owner', Middleware.checkEventsOwner, function (req: any
 });
 
 router.get('/show-bookings', Middleware.showBookings, async (req: any, res: any) => {
-  eventController.getEventBookings(req.body.event_id, res);
+  MiddlewareEvent.middleEventBookings(req.body.event_id, res);
 });
 
 // rotta non richiesta, ma utile per testare alcune funzionalità
@@ -32,5 +33,9 @@ router.delete('/delete-event', Middleware.deleteEvent, async (req, res) => {
 
 router.post('/increment-token', Middleware.checkIncrementToken, Middleware.checkAdmin, async (req, res) => {
   userController.incrementToken(req.body.increment_user, req.body.increment_amount, res);
+});
+
+router.post('/book-event', Middleware.bookEvent, async (req, res) => {
+  eventController.bookEvent(req.body.event_id, req.user.email, req.body.datetimes, res);
 });
 export default router;

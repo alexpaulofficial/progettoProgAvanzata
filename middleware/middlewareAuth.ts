@@ -38,16 +38,6 @@ export function verifyAndAuthenticate(req, res, next) {
     }
   }
 
-  /*
-  export async function checkUser(req, res, next) {
-    if (req.user.email && req.user.role === "user") {
-      next();
-    } else {
-      res.sendStatus(401).json({ error: "JWT incorrect" });
-    }
-  }
-*/
-
 // verifico che l'utente sia veramente un utente come specificato nel token
   export async function checkUserReq(req, res, next) {
     const user: any = await User.checkExistingUser(req.user.email);

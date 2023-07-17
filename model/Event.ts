@@ -29,7 +29,6 @@ export const Event = sequelize.define('event', {
     datetimes: {
         type: DataTypes.ARRAY(DataTypes.DATE),
         defaultValue: DataTypes.NOW,
-        validate: { isDate: true },
         allowNull: false
     },
     status: {

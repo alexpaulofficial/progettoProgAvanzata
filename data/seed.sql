@@ -27,14 +27,14 @@ INSERT INTO "user" (email, name, surname, role, token) VALUES
 
 INSERT INTO event (title, owner, mode, datetimes, status, latitude, longitude, link, bookings) VALUES
   ('Riunione PA', 'ciccio@gmail.com', 1, '{"2023-07-08 10:00:00+01", "2023-07-08 11:00:00+01"}', 1, NULL, NULL, NULL, '[{
-	"datetime": "2023-07-08T09:00:00.000Z",
-	"email": "pippo@gmail.com"
+	"datetimes": "2023-07-08T09:00:00.000Z",
+	"user": "pippo@gmail.com"
 }, {
-	"datetime": "2023-07-08T10:00:00.000Z",
-	"email": "ciccio@gmail.com"
+	"datetimes": ["2023-07-08T10:00:00.000Z"],
+	"user": "ciccio@gmail.com"
 }]'),
   ('Incontro CLAB', 'pippo@gmail.com', 2, '{"2023-08-01 14:00:00+01", "2023-08-04 15:00:00+01", "2023-08-04 16:00:00+01", "2023-08-01 17:00:00+01"}', 1, NULL, NULL, NULL, NULL),
   ('Riunone Amministrazione', 'alessio@gmail.com', 3, '{"2023-09-15 09:00:00+01"}', 1, NULL, NULL, NULL, '[{
-	"datetime": "2023-09-15T08:00:00.000Z",
-	"email": "ciccio@gmail.com"
+	"datetimes": ["2023-09-15T08:00:00.000Z"],
+	"user": "ciccio@gmail.com"
 }]');
