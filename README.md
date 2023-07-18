@@ -4,15 +4,15 @@ Il progetto consiste in un'API Express.js per effettuare le prenotazioni di slot
 
 ## 📑 Indice
 
-- [Obiettivi](#obiettivi)
-- [Diagrammi UML](#diagrammi-uml)
-- [Rotte applicazione](#rotte-applicazione)
+- [Obiettivi](#-obiettivi)
+- [Diagrammi UML](#-diagrammi-uml)
 - [Database](#database)
-- [Installazione ed avvio](#installazione-ed-avvio)
-- [Testing](#testing)
-- [Design Pattern Utilizzati](#design-pattern-utilizzati)
+- [Rotte applicazione](#%EF%B8%8F-rotte-applicazione)
+- [Installazione ed avvio](#-installazione-ed-avvio)
+- [Testing](#-testing)
+- [Design Pattern Utilizzati](#-design-pattern-utilizzati)
 - [Tool di sviluppo](#tool-di-sviluppo)
-- [Miglioramenti e sviluppi futuri](#miglioramenti-possibili-e-sviluppi-futuri)
+- [Miglioramenti e sviluppi futuri](#-miglioramenti-possibili-e-sviluppi-futuri)
 
 ## 🎯 Obiettivi
 
@@ -47,7 +47,7 @@ Prevedere una rotta per l’utente con ruolo <u>admin</u> che consenta di effett
 
 ### Diagramma casi d'uso
 
-<img title="" src="file:///C:/Users/paolu/Desktop/use%20case%20progAva.drawio.png" alt="use case progAva.drawio.png" data-align="center">
+<img title="" src="file:///C:/Users/paolu/Desktop/use case progAva.drawio.png" alt="use case progAva.drawio.png" data-align="center">
 
 ### Diagramma delle sequenze Admin
 
@@ -170,7 +170,7 @@ link VARCHAR,
 bookings JSONB DEFAULT NULL #Postgres gestisce efficientemente i file JSON
 ```
 
-Ad ogni tabella corrisponde un Model in Sequelize ([cartella Models](model)).
+Ad ogni tabella corrisponde un Model in Sequelize ([cartella Modelli](model)).
 
 ## 🛣️ Rotte applicazione
 
@@ -187,9 +187,9 @@ Tutte le rotte partono dall'indirizzo http://localhost:3000/api. La seguente tab
 | /update-token                     | POST   | SI                 | admin        |
 | /book-event                       | POST   | SI                 | qualsiasi    |
 
-Le rotte che richiedono autenticazione JWT ricevono un token generato dalla chiave privata inserita nel file *.env* (da creare come indicato in [installazione ed avvio](#installazione-ed-avvio). Nelle descrizioni dettagliate delle rotte sono riportati il body in JSON. 
+Le rotte che richiedono autenticazione JWT ricevono un token generato dalla chiave privata inserita nel file *.env* (da creare come indicato in [Installazione ed Avvio](#-installazione-ed-avvio)). Nelle descrizioni dettagliate delle rotte sono riportati il body in JSON. 
 
-Il campo ***"email"*** e il campo ***"role"*** fanno riferimento all'utente che effettua la richiesta e si trovano nel payload del token JWT
+Il campo ***email*** e il campo ***role*** fanno riferimento all'utente che effettua la richiesta e si trovano nel <u>payload del token JWT</u>
 
 #### Token JWT
 
@@ -207,9 +207,11 @@ Il campo ***"email"*** e il campo ***"role"*** fanno riferimento all'utente che 
 #### Creazione Evento
 
 > **POST** /create-event
+> 
+> 
 > Crea un evento con owner l'utente che ha effettuato la richiesta (non viene inserito nel body perchè viene preso dal token JWT). Se l'utente non ha token sufficienti per la creazione dell'evento non viene creato (errore 401 come richiesto).
 > 
-> *<u>Le date delle prenotazioni vanno inserite singolarmente per evitare errori nella prenotazione, ovvero per ogni slot prenotato aggiungere una booking in più</u>*
+> *<u>Le date di ogni prenotazione vanno inserite singolarmente per evitare errori nella prenotazione, ovvero per ogni slot prenotato aggiungere una booking diversa, sempre strutturata come sotto</u>*
 > 
 > ```json
 > {
@@ -233,6 +235,8 @@ Il campo ***"email"*** e il campo ***"role"*** fanno riferimento all'utente che 
 #### Chiusura evento
 
 > **POST** /close-event
+> 
+> 
 > Chiude le prenotazioni di un evento, solo se la richiesta viene effettuata dall'owner e se l'evento non ha prenotazioni
 > 
 > ```json
@@ -244,6 +248,8 @@ Il campo ***"email"*** e il campo ***"role"*** fanno riferimento all'utente che 
 #### Cancellazione evento
 
 > **DELETE** /delete-event
+> 
+> 
 > Cancella un evento se la richiesta viene effettuata dall'owner e se l'evento non ha prenotazioni
 > 
 > ```json
@@ -255,6 +261,8 @@ Il campo ***"email"*** e il campo ***"role"*** fanno riferimento all'utente che 
 #### Eventi di cui un utente è il proprietario
 
 > **GET** /show-events
+> 
+> 
 > Visualizza tutti gli eventi di cui l'utente che sta effettuando la richiesta è il proprietario (owner). Non è richiesto un body perchè l'utente viene preso dal token JWT
 > 
 > ```json
@@ -264,6 +272,8 @@ Il campo ***"email"*** e il campo ***"role"*** fanno riferimento all'utente che 
 #### *Informazioni utente (rotta non richiesta)*
 
 > **GET** /show-info-user
+> 
+> 
 > Visualizza tutte le informazioni di un singolo utente. <u>Rotta accessibile solo da utente amministratore</u>
 > 
 > ```json
@@ -275,6 +285,8 @@ Il campo ***"email"*** e il campo ***"role"*** fanno riferimento all'utente che 
 #### Prenotazioni effettuate di un evento
 
 > **GET** /show-bookings
+> 
+> 
 > Visualizza tutte le prenotazioni di un singolo evento (di tutti gli utenti, non è necessario esserne il proprietario)
 > 
 > ```json
@@ -286,7 +298,9 @@ Il campo ***"email"*** e il campo ***"role"*** fanno riferimento all'utente che 
 #### Aggiornamento token di un utente
 
 > **POST** /update-token
-> Sostituisce i token disponibili nell'utente indicato nel campo "update_user" con "update_amount". <u>Rotta accessibile solo da utente amministratore</u>
+> 
+> 
+> Sostituisce i token disponibili nell'utente indicato nel campo *update_user* con *update_amount*. <u>Rotta accessibile solo da utente amministratore</u>
 > 
 > ```json
 > {
@@ -298,6 +312,8 @@ Il campo ***"email"*** e il campo ***"role"*** fanno riferimento all'utente che 
 #### Prenotazione slot evento
 
 > **POST** /book-event
+> 
+> 
 > Prenotazione di slots di un evento. Viene controllata la modalità dell'evento e di conseguenza vengono effettuati i controlli sulla correttezza della prenotazione. Non è possibile mai avere dei doppioni e quindi prenotare due volte lo stesso slot (con lo stesso utente)
 > 
 > ```json
@@ -322,7 +338,7 @@ Il campo ***"email"*** e il campo ***"role"*** fanno riferimento all'utente che 
    git clone https://github.com/alexpaulofficial/progettoProgAvanzata.git
    ```
 
-2. Creare un file .env nella root della cartella del progetto con i seguenti campi (modificare a piacimento, inserendo obbligatoriamente la chiave segreta)
+2. Creare un file *.env* nella root della cartella del progetto con i seguenti campi (modificare a piacimento, inserendo obbligatoriamente la chiave segreta)
    
    ```bash
    SECRET_KEY='' # chiave per generare JWT (progettoProgAvanzata)
@@ -371,7 +387,7 @@ Quando viene richiesto l'utilizzo di Sequelize, l'applicazione verifica se un'is
 
 ### Chain of Responsability
 
-La **Chain of Responsability (CoR)** è un *Behavioural Design Pattern* e permette di processare una richiesta attraverso l'esecuzione di funzioni collegate tra loro in un determinato ordine. In questo progetto la CoR è realizzata tramite le funzionalità dei [Middleware](###middleware) i quali rappresentano i veri e propri anelli della catena.
+La **Chain of Responsability (CoR)** è un *Behavioural Design Pattern* e permette di processare una richiesta attraverso l'esecuzione di funzioni collegate tra loro in un determinato ordine. In questo progetto la CoR è realizzata tramite le funzionalità dei [Middleware](#middleware) i quali rappresentano i veri e propri anelli della catena.
 
 Tale pattern è stato utilizzato per filtrare le richieste HTTP in modo da far pervenire al Controller solamente quelle corrette; per ogni rotta è stata definita una catena di Middleware composta da Middleware per il controllo dell'header e del token JWT (ove necessario) oppure da Middleware specifici della rotta (controllo sui tipi, sull'integrità dei dati, sui vincoli del database...) che restituiscono errore dove necessario. 
 
@@ -379,7 +395,7 @@ Tale pattern è stato utilizzato per filtrare le richieste HTTP in modo da far p
 
 Il pattern **Middleware** è un *Behavioural Design Pattern* utilizzato per gestire richieste e risposte in modo flessibile e modulare. Le richieste all'API vengono gestite da una serie di funzioni Middleware, ognuna delle quali esegue una specifica operazione logica e può decidere di passare la richiesta al successivo Middleware nella catena tramite *next()* o interrompere la catena e restituire la *res (Risposta)* al client. 
 
-In questo specifico progetto, la catena di Middleware viene utilizzata per effettuare controlli sulla richiesta prima di procedere con l'esecuzione del Controller che gestirà l'operazione richiesta dal client, come indicato in [CoR](###chain-of-responsability).  Se uno dei Middleware fallisce nel processo di verifica, la catena interrompe il flusso e restituisce una risposta di errore al client. Se tutti i Middleware superano i controlli, la richiesta viene inoltrata al Controller che effettua la richiesta al database tramite Model. 
+In questo specifico progetto, la catena di Middleware viene utilizzata per effettuare controlli sulla richiesta prima di procedere con l'esecuzione del Controller che gestirà l'operazione richiesta dal client, come indicato in [CoR](#chain-of-responsability).  Se uno dei Middleware fallisce nel processo di verifica, la catena interrompe il flusso e restituisce una risposta di errore al client. Se tutti i Middleware superano i controlli, la richiesta viene inoltrata al Controller che effettua la richiesta al database tramite Model. 
 
 Questo approccio modulare consente di separare le diverse fasi di controllo della richiesta e favorisce la riutilizzabilità del codice, facilitando inoltre la manutenzione e l'aggiunta di nuovi controlli nel flusso senza dover modificare il core dell'applicazione. Inoltre, rende il codice più leggibile e facile da comprendere, poiché ogni Middleware si concentra solo su una specifica operazione.
 
