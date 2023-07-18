@@ -47,7 +47,7 @@ Prevedere una rotta per l’utente con ruolo <u>admin</u> che consenta di effett
 
 ### Diagramma casi d'uso
 
-<img title="" src="file:///C:/Users/paolu/Desktop/use case progAva.drawio.png" alt="use case progAva.drawio.png" data-align="center">
+<img title="" src="/use_case_progAva" alt="Diagramma casi d'uso" data-align="center">
 
 ### Diagramma delle sequenze Admin
 
