@@ -51,11 +51,9 @@ Prevedere una rotta per l’utente con ruolo <u>admin</u> che consenta di effett
 
 ### Diagramma delle sequenze Admin
 
-
-
 ### Diagramma delle sequenze Autenticazione
 
-E' la catena di middleware che si occupa di verificare che l'utente sia autenticato. Viene chiamato in ogni operazione, nei prossimi diagrammi verrà indicato come middelAuthorization sottointendo tutti i passaggi qui illustrati. 
+E' la catena di middleware che si occupa di verificare che l'utente sia autenticato. Viene chiamato in ogni operazione, nei prossimi diagrammi verrà indicato come *Middleware Autenticazione* sottointendo tutti i passaggi qui illustrati. 
 
 ```mermaid
 sequenceDiagram
@@ -79,20 +77,23 @@ sequenceDiagram
             alt Utente Autenticato
                 middle ->> middle.checkUserReq : Esecuzione
                 middle.checkUserReq -->> middle : Risposta
-
-                middle -->> controllerUser : Richiesta
-                controllerUser ->> dbFindOne : Ricerca Utente DB
-                dbFindOne -->> controllerUser : Utente Trovato
-                controllerUser -->> middle : Successo
-                middle -->> Utente : Successo
+                alt Utente da Cercare
+                    middle -->> controllerUser : Richiesta
+                    controllerUser ->> dbFindOne : Ricerca Utente DB
+                    dbFindOne -->> controllerUser : Utente Trovato
+                    controllerUser -->> middle : Successo
+                    middle -->> Utente : Successo
+                 else Utente Non Trovato DB
+                      middle -->> Utente : Errore Autenticazione 404  
+                    end
             else Utente Non Autenticato
-                middle -->> Utente : Errore di Autenticazione 401
+                middle -->> Utente : Errore Autenticazione 401
             end
         else Token Non Valido
-            middle -->> Utente : Errore di Autenticazione 401
+            middle -->> Utente : Errore Autenticazione 401
         end
     else Header Non Valido
-        middle -->> Utente : Errore di Autenticazione 401
+        middle -->> Utente : Errore Autenticazione 412
     end
 ```
 
@@ -101,11 +102,13 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant Client
-    participant middleEvent as "Middleware Event"
-    participant controller as "Controller"
-    participant Database as "Database"
+    participant middlewareAuth as Middleware Autenticazione
+    participant middleEvent as Middleware Prenotazione Evento
+    participant controller as Controller Evento
+    participant Database as Database
 
-    Client ->> middleEvent : Richiesta
+    Client ->> middlewareAuth : Richiesta
+    middlewareAuth ->> middleEvent : Esecuzione
     middleEvent ->> middleEvent.checkBookEventBody : Esecuzione
     middleEvent.checkBookEventBody -->> middleEvent : Risposta
 
@@ -138,6 +141,7 @@ sequenceDiagram
     else Almeno un Middleware ha Fallito
         middleEvent -->> Client : Risposta con Errore
     end
+
 ```
 
 ## Database
@@ -202,12 +206,11 @@ Il campo ***email*** e il campo ***role*** fanno riferimento all'utente che effe
 
 ### Dettagli rotte
 
-**ATTENZIONE!** Se il body di ogni richiesta non è ben strutturato (come nei dettagli sotto) viene restituito un <u>errore 422 "Malformed body"</u>.
+**ATTENZIONE!** Se il body di ogni richiesta non è ben strutturato (come nei dettagli sotto) viene restituito un *errore **422** Malformed body*.
 
 #### Creazione Evento
 
 > **POST** /create-event
-> 
 > 
 > Crea un evento con owner l'utente che ha effettuato la richiesta (non viene inserito nel body perchè viene preso dal token JWT). Se l'utente non ha token sufficienti per la creazione dell'evento non viene creato (errore 401 come richiesto).
 > 
@@ -236,7 +239,6 @@ Il campo ***email*** e il campo ***role*** fanno riferimento all'utente che effe
 
 > **POST** /close-event
 > 
-> 
 > Chiude le prenotazioni di un evento, solo se la richiesta viene effettuata dall'owner e se l'evento non ha prenotazioni
 > 
 > ```json
@@ -248,7 +250,6 @@ Il campo ***email*** e il campo ***role*** fanno riferimento all'utente che effe
 #### Cancellazione evento
 
 > **DELETE** /delete-event
-> 
 > 
 > Cancella un evento se la richiesta viene effettuata dall'owner e se l'evento non ha prenotazioni
 > 
@@ -262,7 +263,6 @@ Il campo ***email*** e il campo ***role*** fanno riferimento all'utente che effe
 
 > **GET** /show-events
 > 
-> 
 > Visualizza tutti gli eventi di cui l'utente che sta effettuando la richiesta è il proprietario (owner). Non è richiesto un body perchè l'utente viene preso dal token JWT
 > 
 > ```json
@@ -272,7 +272,6 @@ Il campo ***email*** e il campo ***role*** fanno riferimento all'utente che effe
 #### *Informazioni utente (rotta non richiesta)*
 
 > **GET** /show-info-user
-> 
 > 
 > Visualizza tutte le informazioni di un singolo utente. <u>Rotta accessibile solo da utente amministratore</u>
 > 
@@ -286,7 +285,6 @@ Il campo ***email*** e il campo ***role*** fanno riferimento all'utente che effe
 
 > **GET** /show-bookings
 > 
-> 
 > Visualizza tutte le prenotazioni di un singolo evento (di tutti gli utenti, non è necessario esserne il proprietario)
 > 
 > ```json
@@ -298,7 +296,6 @@ Il campo ***email*** e il campo ***role*** fanno riferimento all'utente che effe
 #### Aggiornamento token di un utente
 
 > **POST** /update-token
-> 
 > 
 > Sostituisce i token disponibili nell'utente indicato nel campo *update_user* con *update_amount*. <u>Rotta accessibile solo da utente amministratore</u>
 > 
@@ -312,7 +309,6 @@ Il campo ***email*** e il campo ***role*** fanno riferimento all'utente che effe
 #### Prenotazione slot evento
 
 > **POST** /book-event
-> 
 > 
 > Prenotazione di slots di un evento. Viene controllata la modalità dell'evento e di conseguenza vengono effettuati i controlli sulla correttezza della prenotazione. Non è possibile mai avere dei doppioni e quindi prenotare due volte lo stesso slot (con lo stesso utente)
 > 

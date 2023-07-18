@@ -5,7 +5,7 @@ import * as User from "../controller/controllerUser";
 // Costanti per i ruoli
 const ADMIN: string = "admin";
 
-// Controlla se l'header authorization è presente, altrimenti restituisce errore UNAUTHORIZED
+// Controlla se l'header authorization è presente, altrimenti restituisce errore 412
 export function checkHeader(req, res, next) {
   const authHeader = req.headers.authorization;
   if (authHeader) {
