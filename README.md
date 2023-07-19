@@ -51,11 +51,13 @@ Prevedere una rotta per l’utente con ruolo <u>admin</u> che consenta di effett
 
 ### Diagramma delle sequenze
 
-Sono stati riportarti i diagrammi essenziali, infatti tutti gli altri mancanti sono simili. E' stato riportato il middleware Autenticazione dato che è quello che viene sempre usato ed avendo meno Middleware risulta più comprensibile e pulito. Ho riportato poi il diagrama della catena di Middleware più lunga ovvero quella della prenotazione di un Evento.
+Sono stati riportarti i diagrammi delle sequenze più rappresentativi. E' stato riportato il Middleware Autenticazione, che è quello usato più spesso e con meno funzioni intermedie, risultando quindi più comprensibile e pulito. 
+
+E' stato riportato poi il diagrama delle sequenze della catena di Middleware più lunga ovvero quella della prenotazione di un Evento.
 
 #### Diagramma delle sequenze Autenticazione
 
-E' la catena di middleware che si occupa di verificare che l'utente sia autenticato. Viene chiamato in ogni operazione, nei prossimi diagrammi verrà indicato come *Middleware Autenticazione* sottointendo tutti i passaggi qui illustrati. 
+E' la catena di Middleware che si occupa di verificare che l'utente sia autenticato. Viene invocato in ogni rotta, nei prossimi diagrammi verrà indicato come *Middleware Autenticazione* sottointendo tutti i passaggi qui illustrati. 
 
 ```mermaid
 sequenceDiagram
@@ -65,22 +67,18 @@ sequenceDiagram
     participant dbFindOne as Postgres DB
 
     Utente ->> middleAuth : Richiesta
-    middleAuth ->> middleAuth.checkHeader : Esecuzione
-    middleAuth.checkHeader -->> middleAuth : Risposta
+    middleAuth ->> middleAuth.checkHeader : Middle Succ
 
     alt Header Valido
-        middleAuth ->> middleAuth.checkToken : Esecuzione
-        middleAuth.checkToken -->> middleAuth : Risposta
+        middleAuth.checkHeader ->> middleAuth.checkToken : Middle Succ
 
         alt Token Valido
-            middleAuth ->> middleAuth.verifyAndAuthenticate : Esecuzione
-            middleAuth.verifyAndAuthenticate -->> middleAuth : Risposta
+            middleAuth.checkToken ->> middleAuth.verifyAndAuthenticate : Middle Succ
 
             alt Utente Autenticato
-                middleAuth ->> middleAuth.checkUserReq : Esecuzione
-                middleAuth.checkUserReq -->> middleAuth : Risposta
+                middleAuth.verifyAndAuthenticate ->> middleAuth.checkUserReq : Controlli Superati
                 alt Utente da Cercare
-                    middleAuth -->> controllerUser : Richiesta
+                    middleAuth.checkUserReq -->> controllerUser : Richiesta Controller
                     controllerUser ->> dbFindOne : Ricerca Utente DB
                     dbFindOne -->> controllerUser : Utente Trovato
                     controllerUser -->> middleAuth : Successo
@@ -89,19 +87,23 @@ sequenceDiagram
                       middleAuth -->> Utente : Errore Autenticazione 404  
                     end
             else Utente Non Autenticato
-                middleAuth -->> Utente : Errore Autenticazione 401
+                middleAuth.verifyAndAuthenticate -->> Utente : Errore Autenticazione 401
             end
         else Token Non Valido
-            middleAuth -->> Utente : Errore Autenticazione 401
+            middleAuth.checkToken -->> Utente : Errore Autenticazione 401
         end
     else Header Non Valido
-        middleAuth -->> Utente : Errore Autenticazione 412
+        middleAuth.checkHeader -->> Utente : Errore Autenticazione 412
     end
 ```
 
 #### Diagramma delle sequenze Prenotazione Evento
 
-Sono stati omessi alcuni passaggi intermedi d'interazione con il Controller per evitare di rendere il diagramma incomprensibile e confusionario. L'intento è quello di mostrare la catena ed il flusso di Middleware e come solo al termine della stessa viene effettuate la Prenotazione Evento nel DB.
+Sono stati omessi alcuni passaggi intermedi d'interazione con il Controller per evitare di rendere il diagramma incomprensibile e confusionario. L'intento è quello di mostrare la catena ed il flusso di Middleware e come solo al termine della stessa viene effettuata la Prenotazione Evento nel DB. 
+
+Sono indicati, in caso di errore, tutti gli HTTP Status Code. 
+
+Da notare che ogni Middleware in caso di errore interrompe il flusso e restituisce l'errore all'Utente.
 
 ```mermaid
 sequenceDiagram
@@ -129,11 +131,11 @@ sequenceDiagram
                         alt Prenotazione Esistente
                             middleEvent.checkBookingExistence ->> middleEvent.getEventMode : Middle Succ
                             alt Evento Mode 2
-                            middleEvent.getEventMode ->> middleEvent.checkBookingSecondMode : Middle Finale
-                            middleEvent.checkBookingSecondMode -->> middleEvent : Risposta
+                            middleEvent.getEventMode ->> middleEvent.checkBookingSecondMode : Middle Succ
+                            middleEvent.checkBookingSecondMode -->> middleEvent : Controlli Passati
                             else Evento Mode 3
-                            middleEvent ->> middleEvent.checkBookingThirdMode : Middle Finale
-                            middleEvent.checkBookingThirdMode -->> middleEvent : Risposta
+                            middleEvent ->> middleEvent.checkBookingThirdMode : Middle Succ
+                            middleEvent.checkBookingThirdMode -->> middleEvent : Controlli Passati
                             end
                                 alt Tutti i Middleware superati con Successo
                                     middleEvent ->> controller : Richiesta al Controller
@@ -200,7 +202,7 @@ Ad ogni tabella corrisponde un Model in Sequelize ([cartella Modelli](model)).
 
 ## 🛣️ Rotte applicazione
 
-Tutte le rotte partono dall'indirizzo http://localhost:3000/api. La seguente tabella riporta tutte le rotte disponibili:
+Le rotte partono dall'indirizzo http://localhost:3000/api. La seguente tabella riporta tutte quelle disponibili:
 
 | Rotta                             | Metodo | Autenticazione JWT | Ruolo utente |
 |:--------------------------------- |:------:|:------------------:|:------------:|
@@ -213,9 +215,9 @@ Tutte le rotte partono dall'indirizzo http://localhost:3000/api. La seguente tab
 | /update-token                     | POST   | SI                 | admin        |
 | /book-event                       | POST   | SI                 | qualsiasi    |
 
-Le rotte che richiedono autenticazione JWT ricevono un token generato dalla chiave privata inserita nel file *.env* (da creare come indicato in [Installazione ed Avvio](#-installazione-ed-avvio)). Nelle descrizioni dettagliate delle rotte sono riportati il body in JSON. 
+Le rotte che richiedono autenticazione JWT ricevono un *token Bearer* inserito nell'*header* della richiesta generato dalla chiave privata inserita nel file *.env* (da creare come indicato in [Installazione ed Avvio](#-installazione-ed-avvio)). Nelle descrizioni dettagliate delle rotte sono riportati il body in JSON. 
 
-Il campo ***email*** e il campo ***role*** fanno riferimento all'utente che effettua la richiesta e si trovano nel <u>payload del token JWT</u>
+Il campo ***email*** e il campo ***role*** fanno riferimento all'utente che effettua la richiesta e si trovano nel <u>payload del token JWT</u>.
 
 #### Token JWT
 
@@ -236,7 +238,7 @@ Il campo ***email*** e il campo ***role*** fanno riferimento all'utente che effe
 > 
 > Crea un evento con owner l'utente che ha effettuato la richiesta (non viene inserito nel body perchè viene preso dal token JWT). Se l'utente non ha token sufficienti per la creazione dell'evento non viene creato (errore 401 come richiesto).
 > 
-> *<u>Le date di ogni prenotazione vanno inserite singolarmente per evitare errori nella prenotazione, ovvero per ogni slot prenotato aggiungere una booking diversa, sempre strutturata come sotto</u>*
+> *<u>Le date di ogni prenotazione vanno inserite singolarmente per evitare errori nella prenotazione, ovvero per ogni slot prenotato aggiungere una booking diversa, sempre strutturata come sotto (array)</u>*
 > 
 > ```json
 > {
@@ -261,7 +263,7 @@ Il campo ***email*** e il campo ***role*** fanno riferimento all'utente che effe
 
 > **POST** /close-event
 > 
-> Chiude le prenotazioni di un evento, solo se la richiesta viene effettuata dall'owner e se l'evento non ha prenotazioni
+> Chiude le prenotazioni di un evento, solo se la richiesta viene effettuata dall'owner
 > 
 > ```json
 > {
@@ -295,7 +297,7 @@ Il campo ***email*** e il campo ***role*** fanno riferimento all'utente che effe
 
 > **GET** /show-info-user
 > 
-> Visualizza tutte le informazioni di un singolo utente. <u>Rotta accessibile solo da utente amministratore</u>
+> Visualizza tutte le informazioni di un singolo utente. **Rotta accessibile solo da utente amministratore**
 > 
 > ```json
 > {
@@ -319,7 +321,7 @@ Il campo ***email*** e il campo ***role*** fanno riferimento all'utente che effe
 
 > **POST** /update-token
 > 
-> Sostituisce i token disponibili nell'utente indicato nel campo *update_user* con *update_amount*. <u>Rotta accessibile solo da utente amministratore</u>
+> Sostituisce i token disponibili nell'utente indicato nel campo *update_user* con *update_amount*. **Rotta accessibile solo da utente amministratore**
 > 
 > ```json
 > {
@@ -346,7 +348,7 @@ Il campo ***email*** e il campo ***role*** fanno riferimento all'utente che effe
 ### Prerequisiti:
 
 - Docker e Docker Compose
-- Git (per clonare la repository, altrimenti si può scaricare direttamente da GitHub)
+- [Git](https://git-scm.com/) (per clonare la repository, altrimenti si può scaricare direttamente da GitHub)
 
 ### Procedura di avvio:
 
@@ -377,7 +379,7 @@ Il campo ***email*** e il campo ***role*** fanno riferimento all'utente che effe
 
 ## ✅ Testing
 
-É possibile eseguire una serie di test predefiniti importando la collection Postman situata nella cartella [testing](/testing). I test comprendono vari casi di errore, dall'assenza di token all'impossibilità di prenotare uno slot già prenotato. Nella rotta non richiesta (show-info-user) non sono stati inseriti test non essendo richiesta, ma comunque la rotta viene controllata ed è stata implementata completamente. 
+É possibile eseguire una serie di test predefiniti importando la collection Postman situata nella cartella [testing](/testing). I test comprendono vari casi di errore, dall'assenza di token all'impossibilità di prenotare uno slot già prenotato. Nella rotta *show-info-user* non sono stati inseriti test, non essendo richiesta, ma comunque la rotta viene controllata ed è stata implementata completamente/correttamente. 
 
 **<u>Per la generazione del token JWT va dichiarata una variabile globale su Postman della chiave privata che si chiama SECRETKEY</u>**
 
