@@ -49,98 +49,120 @@ Prevedere una rotta per l’utente con ruolo <u>admin</u> che consenta di effett
 
 <img title="" src="/use_case_progAva.png" alt="Diagramma casi d'uso" data-align="center">
 
-### Diagramma delle sequenze Admin
+### Diagramma delle sequenze
 
-### Diagramma delle sequenze Autenticazione
+Sono stati riportarti i diagrammi essenziali, infatti tutti gli altri mancanti sono simili. E' stato riportato il middleware Autenticazione dato che è quello che viene sempre usato ed avendo meno Middleware risulta più comprensibile e pulito. Ho riportato poi il diagrama della catena di Middleware più lunga ovvero quella della prenotazione di un Evento.
+
+#### Diagramma delle sequenze Autenticazione
 
 E' la catena di middleware che si occupa di verificare che l'utente sia autenticato. Viene chiamato in ogni operazione, nei prossimi diagrammi verrà indicato come *Middleware Autenticazione* sottointendo tutti i passaggi qui illustrati. 
 
 ```mermaid
 sequenceDiagram
     participant Utente
-    participant middle as Middleware Autenticazione
+    participant middleAuth as Middleware Autenticazione
     participant controllerUser as Controller Utente
     participant dbFindOne as Postgres DB
 
-    Utente ->> middle : Richiesta
-    middle ->> middle.checkHeader : Esecuzione
-    middle.checkHeader -->> middle : Risposta
+    Utente ->> middleAuth : Richiesta
+    middleAuth ->> middleAuth.checkHeader : Esecuzione
+    middleAuth.checkHeader -->> middleAuth : Risposta
 
     alt Header Valido
-        middle ->> middle.checkToken : Esecuzione
-        middle.checkToken -->> middle : Risposta
+        middleAuth ->> middleAuth.checkToken : Esecuzione
+        middleAuth.checkToken -->> middleAuth : Risposta
 
         alt Token Valido
-            middle ->> middle.verifyAndAuthenticate : Esecuzione
-            middle.verifyAndAuthenticate -->> middle : Risposta
+            middleAuth ->> middleAuth.verifyAndAuthenticate : Esecuzione
+            middleAuth.verifyAndAuthenticate -->> middleAuth : Risposta
 
             alt Utente Autenticato
-                middle ->> middle.checkUserReq : Esecuzione
-                middle.checkUserReq -->> middle : Risposta
+                middleAuth ->> middleAuth.checkUserReq : Esecuzione
+                middleAuth.checkUserReq -->> middleAuth : Risposta
                 alt Utente da Cercare
-                    middle -->> controllerUser : Richiesta
+                    middleAuth -->> controllerUser : Richiesta
                     controllerUser ->> dbFindOne : Ricerca Utente DB
                     dbFindOne -->> controllerUser : Utente Trovato
-                    controllerUser -->> middle : Successo
-                    middle -->> Utente : Successo
+                    controllerUser -->> middleAuth : Successo
+                    middleAuth -->> Utente : Successo
                  else Utente Non Trovato DB
-                      middle -->> Utente : Errore Autenticazione 404  
+                      middleAuth -->> Utente : Errore Autenticazione 404  
                     end
             else Utente Non Autenticato
-                middle -->> Utente : Errore Autenticazione 401
+                middleAuth -->> Utente : Errore Autenticazione 401
             end
         else Token Non Valido
-            middle -->> Utente : Errore Autenticazione 401
+            middleAuth -->> Utente : Errore Autenticazione 401
         end
     else Header Non Valido
-        middle -->> Utente : Errore Autenticazione 412
+        middleAuth -->> Utente : Errore Autenticazione 412
     end
 ```
 
-### Diagramma delle sequenze Prenotazione Evento
+#### Diagramma delle sequenze Prenotazione Evento
+
+Sono stati omessi alcuni passaggi intermedi d'interazione con il Controller per evitare di rendere il diagramma incomprensibile e confusionario. L'intento è quello di mostrare la catena ed il flusso di Middleware e come solo al termine della stessa viene effettuate la Prenotazione Evento nel DB.
 
 ```mermaid
 sequenceDiagram
-    participant Client
+    participant Client as Utente
     participant middlewareAuth as Middleware Autenticazione
     participant middleEvent as Middleware Prenotazione Evento
     participant controller as Controller Evento
-    participant Database as Database
+    participant Database as Postgres DB
 
     Client ->> middlewareAuth : Richiesta
     middlewareAuth ->> middleEvent : Esecuzione
-    middleEvent ->> middleEvent.checkBookEventBody : Esecuzione
-    middleEvent.checkBookEventBody -->> middleEvent : Risposta
 
-    middleEvent ->> middleEvent.checkEventExistence : Esecuzione
-    middleEvent.checkEventExistence -->> middleEvent : Risposta
+    alt Autenticazione Valida
 
-    middleEvent ->> middleEvent.checkEventStatus : Esecuzione
-    middleEvent.checkEventStatus -->> middleEvent : Risposta
+        middleEvent ->> middleEvent.checkBookEventBody : Esecuzione
 
-    middleEvent ->> middleEvent.checkDatetimesExistence : Esecuzione
-    middleEvent.checkDatetimesExistence -->> middleEvent : Risposta
+        alt Body Corretto
+            middleEvent.checkBookEventBody ->> middleEvent.checkEventExistence : Middle Succ
+            alt Evento Esistente
+                middleEvent.checkEventExistence ->> middleEvent.checkEventStatus : Middle Succ
+                alt Evento Aperto
+                    middleEvent.checkEventStatus ->> middleEvent.checkDatetimesExistence : Middle Succ
+                    alt Datitme Esistente 
+                        middleEvent.checkDatetimesExistence ->> middleEvent.checkBookingExistence : Middle Succ
+                        alt Prenotazione Esistente
+                            middleEvent.checkBookingExistence ->> middleEvent.getEventMode : Middle Succ
+                            alt Evento Mode 2
+                            middleEvent.getEventMode ->> middleEvent.checkBookingSecondMode : Middle Finale
+                            middleEvent.checkBookingSecondMode -->> middleEvent : Risposta
+                            else Evento Mode 3
+                            middleEvent ->> middleEvent.checkBookingThirdMode : Middle Finale
+                            middleEvent.checkBookingThirdMode -->> middleEvent : Risposta
+                            end
+                                alt Tutti i Middleware superati con Successo
+                                    middleEvent ->> controller : Richiesta al Controller
+                                    controller ->> Database : Aggiunta Prenotazioni DB (Update)
+                                    Database -->> controller : Risposta Aggiunta Prenotazioni
+                                    controller -->> Client : Successo 200
+                                else Almeno un Middleware ha Fallito
+                            end
+                           else Prenotazione Non Esistente
+                            middleEvent.checkBookingExistence -->> Client : Errore 409
+                            end
+                          else Datetime Non Esistente
+                          middleEvent.checkDatetimesExistence -->> Client : Errore 404
+                          end
+                        else Evento Chiuso
+                          middleEvent.checkEventStatus -->> Client : Errore 403
+                          end
+                      else Evento Inesistente
+                          middleEvent.checkEventExistence -->> Client : Errore 404
+                          end
+                else Body Non Corretto
+                        middleEvent.checkBookEventBody -->> Client : Errore 422
+                        end
+                else Autenticazione Non Valida
+                        middlewareAuth -->> Client : Errore 401, 404 o 412
+                        end
+                            
+                           
 
-    middleEvent ->> middleEvent.checkBookingExistence : Esecuzione
-    middleEvent.checkBookingExistence -->> middleEvent : Risposta
-
-    middleEvent ->> middleEvent.getEventMode : Esecuzione
-    middleEvent.getEventMode -->> middleEvent : Risposta
-
-    middleEvent ->> middleEvent.checkBookingSecondMode : Esecuzione
-    middleEvent.checkBookingSecondMode -->> middleEvent : Risposta
-
-    middleEvent ->> middleEvent.checkBookingThirdMode : Esecuzione
-    middleEvent.checkBookingThirdMode -->> middleEvent : Risposta
-
-    alt Tutti i Middleware superati con Successo
-        middleEvent ->> controller : Richiesta con Middleware Superati
-        controller ->> Database : Aggiunta Prenotazioni (Update)
-        Database -->> controller : Risposta Aggiunta Prenotazioni
-        controller -->> Client : Risposta con Successo
-    else Almeno un Middleware ha Fallito
-        middleEvent -->> Client : Risposta con Errore
-    end
 
 ```
 
